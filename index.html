@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>World Builder Map Tool</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+</head>
+
+<body>
+  <div id="topbar">
+    <label class="file-btn">
+      Import Map
+      <input type="file" id="imageLoader" accept="image/*" hidden />
+    </label>
+
+    <span id="filename">No map selected</span>
+
+    <button id="saveWorld">Save World</button>
+
+    <label class="file-btn">
+      Load World
+      <input type="file" id="loadWorld" accept=".json" hidden />
+    </label>
+
+    <button id="toggleHelp">Help</button>
+  </div>
+
+  <aside id="sidebar">
+    <h2 id="selectedTitle">No Location Selected</h2>
+
+    <label>Name</label>
+    <input id="editName" type="text" />
+
+    <label>Category</label>
+    <div class="row">
+        <select id="editCategory"></select>
+        <button id="addCategory">+</button>
+        <button id="removeCategory">−</button>
+    </div>
+
+    <label>Marker Color</label>
+    <input id="editColor" type="color" value="#ff3333" />
+
+    <label>Custom Icon</label>
+    <input id="editIcon" type="file" accept="image/*" />
+
+    <button id="clearIcon">Clear Icon</button>
+
+    <label>Description</label>
+    <textarea id="editDescription"></textarea>
+
+    <label>Link</label>
+    <input id="editLink" type="text" placeholder="https://..." />
+
+    <button id="updatePoint">Update Point</button>
+    <button id="deletePoint" class="danger">Delete Point</button>
+  </aside>
+
+  <div id="helpPanel" class="hidden">
+    <h2>How to Use</h2>
+
+    <p><strong>Upload Map:</strong> Click “Import Map” and choose an image.</p>
+    <p><strong>Add Marker:</strong> Double-click anywhere on the map.</p>
+    <p><strong>Edit Marker:</strong> Click a marker, then edit its info in the sidebar.</p>
+    <p><strong>Move Marker:</strong> Click and Drag a marker to a new spot.</p>
+    <p><strong>Categories:</strong> Use + to add a category and − to remove one in the sidebar.</p>
+    <p><strong>Custom Icons:</strong> Select a marker, then upload an icon in the sidebar.</p>
+    <p><strong>Regions:</strong> Use the drawing tools on the left to draw areas.</p>
+    <p><strong>Save/Load:</strong> "Save World" exports a JSON file. "Load World" restores it.</p>
+
+    <button id="closeHelp">Close</button>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

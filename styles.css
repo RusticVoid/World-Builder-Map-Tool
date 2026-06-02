@@ -1,0 +1,184 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+#map {
+  width: 100vw;
+  height: 100vh;
+  background: #111;
+}
+
+#topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 280px;
+  height: 52px;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 0 14px;
+  background: rgba(10, 20, 40, 0.92);
+  color: white;
+}
+
+button,
+.file-btn {
+  background: #2d3545;
+  color: white;
+  border: none;
+  padding: 7px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover,
+.file-btn:hover {
+  background: #3c465a;
+}
+
+#filename {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+#sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100vh;
+  z-index: 1000;
+
+  background: rgba(18, 22, 30, 0.96);
+  color: white;
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#sidebar h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+#sidebar label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+#sidebar input,
+#sidebar textarea,
+#sidebar select {
+  background: #111722;
+  color: white;
+  border: 1px solid #384152;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+#sidebar textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.row select {
+  flex: 1;
+}
+
+.row button {
+  width: 38px;
+}
+
+.danger {
+  background: #7a2222;
+}
+
+.danger:hover {
+  background: #9c2929;
+}
+
+.leaflet-top.leaflet-left {
+  top: 64px !important;
+}
+
+.leaflet-control-attribution {
+  display: none;
+}
+
+.custom-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.custom-icon-marker {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+}
+
+.selected-marker {
+  transform: scale(1.25);
+  z-index: 1000 !important;
+}
+
+.selected-marker .custom-marker {
+  box-shadow:
+    0 0 0 4px white,
+    0 0 15px 6px #4da6ff,
+    0 0 30px 10px #4da6ff;
+}
+
+.selected-marker .custom-icon-marker {
+  filter:
+    drop-shadow(0 0 8px #4da6ff)
+    drop-shadow(0 0 15px #4da6ff);
+}
+
+#helpPanel {
+  position: absolute;
+  top: 70px;
+  left: 70px;
+  z-index: 1200;
+
+  width: 320px;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  background: rgba(18, 22, 30, 0.97);
+  color: white;
+  padding: 18px;
+  border-radius: 10px;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+#helpPanel h2 {
+  margin-top: 0;
+}
+
+#helpPanel p {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.hidden {
+  display: none;
+}
