@@ -67,6 +67,21 @@ updateCategoryDropdown();
 
 
 enhanceColorInputs();
+showSidebarEditor(null);
+
+function showSidebarEditor(type) {
+  const pointEditor = document.getElementById("pointEditor");
+  const regionEditor = document.getElementById("regionEditor");
+  const emptyMessage = document.getElementById("sidebarEmptyMessage");
+
+  pointEditor.classList.toggle("hidden", type !== "point");
+  regionEditor.classList.toggle("hidden", type !== "region");
+  emptyMessage.classList.toggle("hidden", type === "point" || type === "region");
+
+  if (!type) {
+    document.getElementById("selectedTitle").textContent = "Nothing Selected";
+  }
+}
 
 function enhanceColorInputs() {
   document.querySelectorAll('input[type="color"]').forEach(input => {
@@ -240,6 +255,7 @@ function makePopup(point) {
 }
 
 function fillSidebar(point) {
+  showSidebarEditor("point");
   document.getElementById("selectedTitle").textContent = point.name;
   document.getElementById("editName").value = point.name;
   document.getElementById("editCategory").value = point.category;
@@ -303,7 +319,7 @@ document.getElementById("deletePoint").addEventListener("click", () => {
 
   selectedPoint = null;
 
-  document.getElementById("selectedTitle").textContent = "No Location Selected";
+  showSidebarEditor(null);
   document.getElementById("editName").value = "";
   document.getElementById("editDescription").value = "";
   document.getElementById("editLink").value = "";
@@ -671,6 +687,7 @@ function selectRegion(layer) {
 }
 
 function fillRegionSidebar(layer) {
+  showSidebarEditor("region");
   document.getElementById("selectedTitle").textContent = layer.regionData.name;
   document.getElementById("editRegionName").value = layer.regionData.name;
   document.getElementById("editRegionColor").value = layer.regionData.color || "#4da6ff";
@@ -779,7 +796,7 @@ document.getElementById("deleteRegion").addEventListener("click", () => {
   drawnItems.removeLayer(selectedRegionLayer);
   selectedRegionLayer = null;
   clearRegionSidebar();
-  document.getElementById("selectedTitle").textContent = "No Location Selected";
+  showSidebarEditor(null);
   saveRegionsFromMap();
 });
 
@@ -920,12 +937,32 @@ function highlightSelectedMarker(marker) {
   }
 }
 
+const helpPanel = document.getElementById("helpPanel");
+
+function openHelpPanel() {
+  helpPanel.classList.remove("hidden");
+  resourcesPanel.classList.add("hidden");
+}
+
+function closeHelpPanel() {
+  helpPanel.classList.add("hidden");
+}
+
 document.getElementById("toggleHelp").addEventListener("click", () => {
-  document.getElementById("helpPanel").classList.toggle("hidden");
+  if (helpPanel.classList.contains("hidden")) {
+    openHelpPanel();
+  } else {
+    closeHelpPanel();
+  }
 });
 
-document.getElementById("closeHelp").addEventListener("click", () => {
-  document.getElementById("helpPanel").classList.add("hidden");
+document.getElementById("closeHelp").addEventListener("click", closeHelpPanel);
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    closeHelpPanel();
+    resourcesPanel.classList.add("hidden");
+  }
 });
 
 function clearSelection() {
@@ -950,8 +987,7 @@ function clearSelection() {
     clearRegionSidebar();
   }
 
-  document.getElementById("selectedTitle").textContent =
-    "No Location Selected";
+  showSidebarEditor(null);
 
   document.getElementById("editName").value = "";
   document.getElementById("editDescription").value = "";
@@ -970,10 +1006,21 @@ map.on("click", e => {
 
 });
 
-document.getElementById("toggleResources").addEventListener("click", () => {
+function openResourcesPanel() {
   resourcesPanel.classList.remove("hidden");
+  closeHelpPanel();
+}
+
+function closeResourcesPanel() {
+  resourcesPanel.classList.add("hidden");
+}
+
+document.getElementById("toggleResources").addEventListener("click", () => {
+  if (resourcesPanel.classList.contains("hidden")) {
+    openResourcesPanel();
+  } else {
+    closeResourcesPanel();
+  }
 });
 
-document.getElementById("closeResources").addEventListener("click", () => {
-  resourcesPanel.classList.add("hidden");
-});
+document.getElementById("closeResources").addEventListener("click", closeResourcesPanel);

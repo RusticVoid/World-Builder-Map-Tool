@@ -32,174 +32,216 @@
   </div>
 
   <aside id="sidebar">
-    <h2 id="selectedTitle">No Location Selected</h2>
+    <h2 id="selectedTitle">Nothing Selected</h2>
 
-    <label>Name</label>
-    <input id="editName" type="text" />
+    <p id="sidebarEmptyMessage" class="sidebar-empty-message">
+      Select a marker or drawn area to edit it.
+    </p>
 
-    <label>Category</label>
-    <div class="row">
-        <select id="editCategory"></select>
-        <button id="addCategory">+</button>
-        <button id="removeCategory">−</button>
-    </div>
+    <section id="pointEditor" class="sidebar-editor hidden">
+      <h3>Selected Point</h3>
 
-    <label>Marker Color</label>
-    <input id="editColor" type="color" value="#ff3333" />
+      <label>Name</label>
+      <input id="editName" type="text" />
 
-    <label>Custom Icon</label>
-    <input id="editIcon" type="file" accept="image/*" />
+      <label>Category</label>
+      <div class="row">
+          <select id="editCategory"></select>
+          <button id="addCategory">+</button>
+          <button id="removeCategory">−</button>
+      </div>
 
-    <button id="clearIcon">Clear Icon</button>
+      <label>Marker Color</label>
+      <input id="editColor" type="color" value="#ff3333" />
 
-    <label>Description</label>
-    <textarea id="editDescription"></textarea>
+      <label>Custom Icon</label>
+      <input id="editIcon" type="file" accept="image/*" />
 
-    <label>Link</label>
-    <input id="editLink" type="text" placeholder="https://..." />
+      <button id="clearIcon">Clear Icon</button>
 
-    <button id="deletePoint" class="danger">Delete Point</button>
+      <label>Description</label>
+      <textarea id="editDescription"></textarea>
 
-    <hr class="sidebar-divider" />
+      <label>Link</label>
+      <input id="editLink" type="text" placeholder="https://..." />
 
-    <h3>Drawn Area</h3>
+      <button id="deletePoint" class="danger">Delete Point</button>
+    </section>
 
-    <label>Area Label</label>
-    <input id="editRegionName" type="text" placeholder="Select a drawn area" />
+    <section id="regionEditor" class="sidebar-editor hidden">
+      <h3>Selected Area</h3>
 
-    <label>Area Color</label>
-    <input id="editRegionColor" type="color" value="#4da6ff" />
+      <label>Area Label</label>
+      <input id="editRegionName" type="text" placeholder="Select a drawn area" />
 
-    <label>Show Area Label</label>
-    <label class="check-row">
-      <input id="editRegionLabelVisible" type="checkbox" checked />
-      Visible on map
-    </label>
+      <label>Area Color</label>
+      <input id="editRegionColor" type="color" value="#4da6ff" />
 
-    <label>Label Text Color</label>
-    <input id="editRegionLabelTextColor" type="color" value="#ffffff" />
+      <label>Show Area Label</label>
+      <label class="check-row">
+        <input id="editRegionLabelVisible" type="checkbox" checked />
+        Visible on map
+      </label>
 
-    <label>Label Background</label>
-    <label class="check-row">
-      <input id="editRegionLabelBackgroundVisible" type="checkbox" checked />
-      Show background behind label
-    </label>
-    <input id="editRegionLabelBackground" type="color" value="#12161e" />
+      <label>Label Text Color</label>
+      <input id="editRegionLabelTextColor" type="color" value="#ffffff" />
 
-    <label>Label Size</label>
-    <input id="editRegionLabelSize" type="number" min="10" max="72" step="1" value="14" />
+      <label>Label Background</label>
+      <label class="check-row">
+        <input id="editRegionLabelBackgroundVisible" type="checkbox" checked />
+        Show background behind label
+      </label>
+      <input id="editRegionLabelBackground" type="color" value="#12161e" />
 
-    <label>Label Font</label>
-    <select id="editRegionLabelFont">
-      <option value="Arial, sans-serif" selected>Arial</option>
-      <option value="Georgia, serif">Georgia</option>
-      <option value="'Times New Roman', Times, serif">Times New Roman</option>
-      <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-      <option value="Verdana, sans-serif">Verdana</option>
-      <option value="'Courier New', monospace">Courier New</option>
-      <option value="'Brush Script MT', cursive">Brush Script</option>
-      <option value="'Cinzel', Georgia, serif">Cinzel / Fantasy Serif</option>
-      <option value="'Papyrus', fantasy">Papyrus</option>
-    </select>
+      <label>Label Size</label>
+      <input id="editRegionLabelSize" type="number" min="10" max="72" step="1" value="14" />
 
-    <label>Label Style</label>
-    <select id="editRegionLabelWeight">
-      <option value="normal">Normal</option>
-      <option value="bold" selected>Bold</option>
-    </select>
+      <label>Label Font</label>
+      <select id="editRegionLabelFont">
+        <option value="Arial, sans-serif" selected>Arial</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Times New Roman', Times, serif">Times New Roman</option>
+        <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+        <option value="'Courier New', monospace">Courier New</option>
+        <option value="'Brush Script MT', cursive">Brush Script</option>
+        <option value="'Cinzel', Georgia, serif">Cinzel / Fantasy Serif</option>
+        <option value="'Papyrus', fantasy">Papyrus</option>
+      </select>
 
-    <label>Label Curve</label>
-    <input id="editRegionLabelCurve" type="number" min="-300" max="300" step="1" value="0" />
+      <label>Label Style</label>
+      <select id="editRegionLabelWeight">
+        <option value="normal">Normal</option>
+        <option value="bold" selected>Bold</option>
+      </select>
 
-    <button id="deleteRegion" class="danger">Delete Area</button>
+      <label>Label Curve</label>
+      <input id="editRegionLabelCurve" type="number" min="-300" max="300" step="1" value="0" />
+
+      <button id="deleteRegion" class="danger">Delete Area</button>
+    </section>
   </aside>
 
-  <div id="helpPanel" class="hidden">
-    <h2>How to Use</h2>
+  <div id="helpPanel" class="help-panel hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="help-header">
+      <div>
+        <p class="eyebrow">World Builder Guide</p>
+        <h2 id="helpTitle">Build your map faster</h2>
+        <p class="help-intro">
+          Import a map image, place locations, draw regions, customize labels, and save everything as a reusable world file.
+        </p>
+      </div>
+      <button id="closeHelp" class="icon-button" aria-label="Close help menu">×</button>
+    </div>
 
-    <p><strong>Import Map:</strong> Click "Import Map" and select an image file. The image becomes your world map.</p>
+    <div class="quick-start-card">
+      <h3>Quick Start</h3>
+      <ol class="quick-start-list">
+        <li><span>1</span><strong>Import Map</strong><p>Choose an image to use as your world map.</p></li>
+        <li><span>2</span><strong>Add Places</strong><p>Double-click the map to drop markers.</p></li>
+        <li><span>3</span><strong>Draw Areas</strong><p>Use the drawing tools on the left to outline regions.</p></li>
+        <li><span>4</span><strong>Save World</strong><p>Export your map, markers, regions, and styling to JSON.</p></li>
+      </ol>
+    </div>
 
-    <p><strong>Add Marker:</strong> Double-click anywhere on the map to create a new location marker.</p>
+    <div class="help-grid">
+      <section class="help-card">
+        <h3>Map Files</h3>
+        <p><strong>Import Map</strong> loads a PNG, JPG, or other image as the map canvas.</p>
+        <p><strong>Save World</strong> exports all map data into a JSON file.</p>
+        <p><strong>Load World</strong> restores a previously saved JSON world.</p>
+      </section>
 
-    <p><strong>Edit Marker:</strong> Click a marker to edit its name, category, color, icon, description, and link in the sidebar.</p>
+      <section class="help-card">
+        <h3>Markers</h3>
+        <p><strong>Add:</strong> Double-click anywhere on the map.</p>
+        <p><strong>Edit:</strong> Click a marker, then use the sidebar for name, category, color, icon, description, and link.</p>
+        <p><strong>Move:</strong> Drag a marker to reposition it.</p>
+      </section>
 
-    <p><strong>Move Marker:</strong> Click and drag any marker to reposition it.</p>
+      <section class="help-card">
+        <h3>Categories & Icons</h3>
+        <p>Use <strong>+</strong> to create marker categories and <strong>−</strong> to remove them.</p>
+        <p>Upload a custom marker icon, or clear it to return to a colored dot.</p>
+      </section>
 
-    <p><strong>Categories:</strong> Use the + button to create categories and the − button to remove them.</p>
+      <section class="help-card">
+        <h3>Regions</h3>
+        <p>Use the left-side drawing tools to create territories, kingdoms, provinces, biomes, routes, or borders.</p>
+        <p>Click a region to edit its name, color, label visibility, text color, background, size, font, style, and curve.</p>
+      </section>
+    </div>
 
-    <p><strong>Custom Icons:</strong> Select a marker and upload a custom image icon.</p>
-
-    <p><strong>Draw Regions:</strong> Use the drawing tools on the left side of the map to create territories, kingdoms, provinces, biomes, or other areas.</p>
-
-    <p><strong>Edit Regions:</strong> Click a region to edit its name, area color, label visibility, label text color, optional label background, label size, label style, and label curve in the sidebar.</p>
-
-    <p><strong>Save World:</strong> Exports all markers, regions, labels, colors, categories, and settings into a JSON file.</p>
-
-    <p><strong>Load World:</strong> Restores a previously saved world from a JSON file.</p>
-
-    <p><strong>Tips:</strong></p>
-    <ul>
-      <li>Use categories to organize locations.</li>
-      <li>Use region colors to visually separate kingdoms, nations, or territories.</li>
-      <li>Add descriptions and links to build a detailed world encyclopedia.</li>
-      <li>Save your world frequently while making major changes.</li>
-    </ul>
-
-    <button id="closeHelp">Close</button>
+    <div class="help-tips">
+      <h3>Best Practices</h3>
+      <ul>
+        <li>Save before making large changes.</li>
+        <li>Use categories for cities, ruins, landmarks, factions, or quest locations.</li>
+        <li>Use region colors to separate nations, climates, territories, or political borders.</li>
+        <li>Add descriptions and links to turn your map into a lightweight world encyclopedia.</li>
+      </ul>
+    </div>
   </div>
 
-  <div id="resourcesPanel" class="hidden">
-    <h2>Resources</h2>
-
-    <div class="resource-card">
-      <h3>Watabou Generators</h3>
-
-      <p>
-        Generate cities, villages, dungeons, and caves to use with World Builder.
-      </p>
-
-      <a
-        href="https://watabou.github.io/"
-        target="_blank"
-        class="resource-link"
-      >
-        Open Watabou
-      </a>
+  <div id="resourcesPanel" class="resources-panel hidden" role="dialog" aria-modal="true" aria-labelledby="resourcesTitle">
+    <div class="resources-header">
+      <div>
+        <p class="eyebrow">Creator Toolkit</p>
+        <h2 id="resourcesTitle">Worldbuilding Resources</h2>
+        <p class="resources-intro">
+          Use these generators and reference tools to create maps, names, icons, campaign details, and deeper lore for your world.
+        </p>
+      </div>
+      <button id="closeResources" class="icon-button" aria-label="Close resources menu">×</button>
     </div>
 
-    <div class="resource-card">
-      <h3>Fantasy Map Generator</h3>
+    <div class="resource-grid">
+      <article class="resource-card featured-resource">
+        <div class="resource-card-header">
+          <span class="resource-tag">Maps</span>
+          <h3>Azgaar's Fantasy Map Generator</h3>
+        </div>
+        <p>
+          Generate and edit full fantasy world maps, then export an image to import into World Builder.
+        </p>
+        <a href="https://azgaar.github.io/Fantasy-Map-Generator/" target="_blank" rel="noopener noreferrer" class="resource-link">
+          Open Generator
+        </a>
+      </article>
 
-      <p>
-        Generate fictional world maps to use with World Builder.
-      </p>
+      <article class="resource-card">
+        <div class="resource-card-header">
+          <span class="resource-tag">Cities & Dungeons</span>
+          <h3>Watabou Generators</h3>
+        </div>
+        <p>
+          Create cities, villages, mansions, dungeons, caves, and region maps for detailed local areas.
+        </p>
+        <a href="https://watabou.itch.io/" target="_blank" rel="noopener noreferrer" class="resource-link">
+          Open Watabou
+        </a>
+      </article>
 
-      <a
-        href="https://azgaar.github.io/Fantasy-Map-Generator/"
-        target="_blank"
-        class="resource-link"
-      >
-        Open Fantasy Map Generator
-      </a>
+      <article class="resource-card">
+        <div class="resource-card-header">
+          <span class="resource-tag">Names</span>
+          <h3>Fantasy Name Generators</h3>
+        </div>
+        <p>
+          Generate names for kingdoms, towns, landmarks, cultures, people, creatures, and factions.
+        </p>
+        <a href="https://www.fantasynamegenerators.com/" target="_blank" rel="noopener noreferrer" class="resource-link">
+          Open Names
+        </a>
+      </article>
     </div>
 
-    <div class="resource-card">
-      <h3>Fantasy Name Generators</h3>
-
+    <div class="resource-note">
+      <h3>Workflow Tip</h3>
       <p>
-        Generate fictional names for fictional places to use with World Builder.
+        Make or download a map image first, import it here, then use names, icons, and lore tools to fill the world with locations and regions.
       </p>
-
-      <a
-        href="https://www.fantasynamegenerators.com/"
-        target="_blank"
-        class="resource-link"
-      >
-        Open Fantasy Name Generators
-      </a>
     </div>
-
-    <button id="closeResources">Close</button>
   </div>
 
  
