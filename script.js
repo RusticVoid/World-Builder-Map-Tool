@@ -5,6 +5,8 @@ let selectedPoint = null;
 let selectedMarker = null;
 let selectedRegionLayer = null;
 
+const resourcesPanel = document.getElementById("resourcesPanel");
+
 const drawnItems = new L.FeatureGroup();
 
 let worldData = {
@@ -639,4 +641,12 @@ map.on("click", e => {
     clearSelection();
   }
 
+});
+
+document.getElementById("toggleResources").addEventListener("click", () => {
+  resourcesPanel.classList.remove("hidden");
+});
+
+document.getElementById("closeResources").addEventListener("click", () => {
+  resourcesPanel.classList.add("hidden");
 });

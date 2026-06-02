@@ -27,6 +27,8 @@
     </label>
 
     <button id="toggleHelp">Help</button>
+
+    <button id="toggleResources">Resources</button>
   </div>
 
   <aside id="sidebar">
@@ -74,17 +76,59 @@
   <div id="helpPanel" class="hidden">
     <h2>How to Use</h2>
 
-    <p><strong>Upload Map:</strong> Click “Import Map” and choose an image.</p>
-    <p><strong>Add Marker:</strong> Double-click anywhere on the map.</p>
-    <p><strong>Edit Marker:</strong> Click a marker, then edit its info in the sidebar. Changes apply instantly.</p>
-    <p><strong>Move Marker:</strong> Click and Drag a marker to a new spot.</p>
-    <p><strong>Categories:</strong> Use + to add a category and − to remove one in the sidebar.</p>
-    <p><strong>Custom Icons:</strong> Select a marker, then upload an icon in the sidebar.</p>
-    <p><strong>Regions:</strong> Use the drawing tools on the left to draw areas. Click a drawn area to edit its label and color in the sidebar. Changes apply instantly.</p>
-    <p><strong>Save/Load:</strong> "Save World" exports a JSON file. "Load World" restores it.</p>
+    <p><strong>Import Map:</strong> Click "Import Map" and select an image file. The image becomes your world map.</p>
+
+    <p><strong>Add Marker:</strong> Double-click anywhere on the map to create a new location marker.</p>
+
+    <p><strong>Edit Marker:</strong> Click a marker to edit its name, category, color, icon, description, and link in the sidebar.</p>
+
+    <p><strong>Move Marker:</strong> Click and drag any marker to reposition it.</p>
+
+    <p><strong>Categories:</strong> Use the + button to create categories and the − button to remove them.</p>
+
+    <p><strong>Custom Icons:</strong> Select a marker and upload a custom image icon.</p>
+
+    <p><strong>Draw Regions:</strong> Use the drawing tools on the left side of the map to create territories, kingdoms, provinces, biomes, or other areas.</p>
+
+    <p><strong>Edit Regions:</strong> Click a region to edit its name and color in the sidebar.</p>
+
+    <p><strong>Save World:</strong> Exports all markers, regions, labels, colors, categories, and settings into a JSON file.</p>
+
+    <p><strong>Load World:</strong> Restores a previously saved world from a JSON file.</p>
+
+    <p><strong>Tips:</strong></p>
+    <ul>
+      <li>Use categories to organize locations.</li>
+      <li>Use region colors to visually separate kingdoms, nations, or territories.</li>
+      <li>Add descriptions and links to build a detailed world encyclopedia.</li>
+      <li>Save your world frequently while making major changes.</li>
+    </ul>
 
     <button id="closeHelp">Close</button>
   </div>
+
+  <div id="resourcesPanel" class="hidden">
+    <h2>Worldbuilding Resources</h2>
+
+    <div class="resource-card">
+      <h3>Watabou Generators</h3>
+
+      <p>
+        Generate cities, villages, dungeons, and caves to use with World Builder.
+      </p>
+
+      <a
+        href="https://watabou.github.io/"
+        target="_blank"
+        class="resource-link"
+      >
+        Open Watabou
+      </a>
+    </div>
+
+    <button id="closeResources">Close</button>
+  </div>
+
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

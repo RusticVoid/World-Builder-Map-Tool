@@ -204,3 +204,43 @@ button:hover,
   padding: 3px 7px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
+
+#resourcesPanel {
+  position: absolute;
+  top: 70px;
+  left: 70px;
+  z-index: 1200;
+
+  width: 400px;
+  max-height: 75vh;
+  overflow-y: auto;
+
+  background: rgba(18, 22, 30, 0.97);
+  color: white;
+  padding: 18px;
+  border-radius: 10px;
+
+  box-shadow: 0 8px 30px rgba(0,0,0,.45);
+}
+
+.resource-card {
+  background: #111722;
+  border: 1px solid #384152;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.resource-link {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #2d3545;
+  color: white;
+  text-decoration: none;
+}
+
+.resource-link:hover {
+  background: #3c465a;
+}
