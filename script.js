@@ -414,10 +414,18 @@ map.on(L.Draw.Event.EDITED, e => {
   saveRegionsFromMap();
 });
 
-map.on(L.Draw.Event.DELETED, () => {
-  selectedRegionLayer = null;
+map.on(L.Draw.Event.DELETED, e => {
+  e.layers.eachLayer(layer => {
+    removeRegionLabelOverlay(layer);
+
+    if (selectedRegionLayer === layer) {
+      selectedRegionLayer = null;
+    }
+  });
+
   clearRegionLabelHandles();
   clearRegionSidebar();
+  showSidebarEditor(null);
   saveRegionsFromMap();
 });
 
