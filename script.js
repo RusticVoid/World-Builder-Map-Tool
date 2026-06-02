@@ -3,6 +3,7 @@ let imageLayer;
 let imageBounds;
 let selectedPoint = null;
 let selectedMarker = null;
+let selectedRegionLayer = null;
 
 const drawnItems = new L.FeatureGroup();
 
@@ -192,16 +193,23 @@ function fillSidebar(point) {
   document.getElementById("editLink").value = point.link;
 }
 
-document.getElementById("updatePoint").addEventListener("click", () => {
-  if (!selectedPoint) return alert("Click a point first.");
+function applyPointSidebarChanges() {
+  if (!selectedPoint) return;
 
-  selectedPoint.name = document.getElementById("editName").value;
+  selectedPoint.name = document.getElementById("editName").value || "Unnamed Location";
   selectedPoint.category = document.getElementById("editCategory").value;
-  selectedPoint.color = document.getElementById("editColor").value;
+  selectedPoint.color = document.getElementById("editColor").value || "#ff3333";
   selectedPoint.description = document.getElementById("editDescription").value;
   selectedPoint.link = document.getElementById("editLink").value;
 
+  document.getElementById("selectedTitle").textContent = selectedPoint.name;
   refreshMarker(selectedPoint);
+}
+
+["editName", "editCategory", "editColor", "editDescription", "editLink"].forEach(id => {
+  const input = document.getElementById(id);
+  input.addEventListener("input", applyPointSidebarChanges);
+  input.addEventListener("change", applyPointSidebarChanges);
 });
 
 document.getElementById("editIcon").addEventListener("change", e => {
@@ -317,20 +325,147 @@ function updateCategoryDropdown() {
 
 map.on(L.Draw.Event.CREATED, e => {
   const layer = e.layer;
+
+  setupRegionLayer(layer, {
+    id: crypto.randomUUID(),
+    name: "New Area",
+    color: "#4da6ff"
+  });
+
   drawnItems.addLayer(layer);
+  selectRegion(layer);
   saveRegionsFromMap();
 });
 
-map.on(L.Draw.Event.EDITED, saveRegionsFromMap);
-map.on(L.Draw.Event.DELETED, saveRegionsFromMap);
+map.on(L.Draw.Event.EDITED, e => {
+  e.layers.eachLayer(layer => updateRegionTooltip(layer));
+  saveRegionsFromMap();
+});
+
+map.on(L.Draw.Event.DELETED, () => {
+  selectedRegionLayer = null;
+  clearRegionSidebar();
+  saveRegionsFromMap();
+});
+
+function setupRegionLayer(layer, properties = {}) {
+  const data = {
+    id: properties.id || crypto.randomUUID(),
+    name: properties.name || "New Area",
+    color: properties.color || "#4da6ff"
+  };
+
+  layer.regionData = data;
+  applyRegionStyle(layer);
+  updateRegionTooltip(layer);
+
+  layer.on("click", e => {
+    L.DomEvent.stopPropagation(e);
+    selectRegion(layer);
+  });
+}
+
+function applyRegionStyle(layer) {
+  if (!layer.setStyle || !layer.regionData) return;
+
+  layer.setStyle({
+    color: layer.regionData.color,
+    fillColor: layer.regionData.color,
+    weight: selectedRegionLayer === layer ? 4 : 2,
+    fillOpacity: selectedRegionLayer === layer ? 0.38 : 0.25
+  });
+}
+
+function updateRegionTooltip(layer) {
+  if (!layer.regionData) return;
+
+  const label = escapeHTML(layer.regionData.name || "New Area");
+
+  if (layer.getTooltip()) {
+    layer.setTooltipContent(label);
+  } else {
+    layer.bindTooltip(label, {
+      permanent: true,
+      direction: "center",
+      className: "region-label"
+    });
+  }
+}
+
+function selectRegion(layer) {
+  if (selectedRegionLayer && selectedRegionLayer !== layer) {
+    applyRegionStyle(selectedRegionLayer);
+  }
+
+  selectedRegionLayer = layer;
+  selectedPoint = null;
+
+  if (selectedMarker) {
+    const element = selectedMarker.getElement();
+    if (element) element.classList.remove("selected-marker");
+    selectedMarker = null;
+  }
+
+  applyRegionStyle(layer);
+  fillRegionSidebar(layer);
+}
+
+function fillRegionSidebar(layer) {
+  document.getElementById("selectedTitle").textContent = layer.regionData.name;
+  document.getElementById("editRegionName").value = layer.regionData.name;
+  document.getElementById("editRegionColor").value = layer.regionData.color || "#4da6ff";
+}
+
+function clearRegionSidebar() {
+  document.getElementById("editRegionName").value = "";
+  document.getElementById("editRegionColor").value = "#4da6ff";
+}
 
 function saveRegionsFromMap() {
   worldData.regions = [];
 
   drawnItems.eachLayer(layer => {
-    worldData.regions.push(layer.toGeoJSON());
+    const feature = layer.toGeoJSON();
+    feature.properties = {
+      ...(feature.properties || {}),
+      ...(layer.regionData || {})
+    };
+
+    worldData.regions.push(feature);
   });
 }
+
+function applyRegionSidebarChanges() {
+  if (!selectedRegionLayer) return;
+
+  selectedRegionLayer.regionData.name =
+    document.getElementById("editRegionName").value || "Unnamed Area";
+  selectedRegionLayer.regionData.color =
+    document.getElementById("editRegionColor").value || "#4da6ff";
+
+  applyRegionStyle(selectedRegionLayer);
+  updateRegionTooltip(selectedRegionLayer);
+  document.getElementById("selectedTitle").textContent =
+    selectedRegionLayer.regionData.name;
+  saveRegionsFromMap();
+}
+
+["editRegionName", "editRegionColor"].forEach(id => {
+  const input = document.getElementById(id);
+  input.addEventListener("input", applyRegionSidebarChanges);
+  input.addEventListener("change", applyRegionSidebarChanges);
+});
+
+document.getElementById("deleteRegion").addEventListener("click", () => {
+  if (!selectedRegionLayer) return alert("Click a drawn area first.");
+
+  drawnItems.removeLayer(selectedRegionLayer);
+  selectedRegionLayer = null;
+  clearRegionSidebar();
+  document.getElementById("selectedTitle").textContent = "No Location Selected";
+  saveRegionsFromMap();
+});
+
 
 document.getElementById("saveWorld").addEventListener("click", () => {
   saveRegionsFromMap();
@@ -399,8 +534,12 @@ function loadWorld(data) {
   });
 
   worldData.regions.forEach(region => {
-    const layer = L.geoJSON(region);
-    layer.eachLayer(l => drawnItems.addLayer(l));
+    const layerGroup = L.geoJSON(region);
+
+    layerGroup.eachLayer(layer => {
+      setupRegionLayer(layer, region.properties || {});
+      drawnItems.addLayer(layer);
+    });
   });
 }
 
@@ -435,6 +574,13 @@ function highlightSelectedMarker(marker) {
 
   selectedMarker = marker;
 
+  if (selectedRegionLayer) {
+    const oldRegion = selectedRegionLayer;
+    selectedRegionLayer = null;
+    applyRegionStyle(oldRegion);
+    clearRegionSidebar();
+  }
+
   const element = marker.getElement();
 
   if (element) {
@@ -464,6 +610,13 @@ function clearSelection() {
   selectedMarker = null;
   selectedPoint = null;
 
+  if (selectedRegionLayer) {
+    const oldRegion = selectedRegionLayer;
+    selectedRegionLayer = null;
+    applyRegionStyle(oldRegion);
+    clearRegionSidebar();
+  }
+
   document.getElementById("selectedTitle").textContent =
     "No Location Selected";
 
@@ -478,7 +631,7 @@ function clearSelection() {
 
 map.on("click", e => {
 
-  if (selectedMarker) {
+  if (selectedMarker || selectedRegionLayer) {
     clearSelection();
   }
 

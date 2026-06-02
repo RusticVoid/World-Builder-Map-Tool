@@ -56,8 +56,19 @@
     <label>Link</label>
     <input id="editLink" type="text" placeholder="https://..." />
 
-    <button id="updatePoint">Update Point</button>
     <button id="deletePoint" class="danger">Delete Point</button>
+
+    <hr class="sidebar-divider" />
+
+    <h3>Drawn Area</h3>
+
+    <label>Area Label</label>
+    <input id="editRegionName" type="text" placeholder="Select a drawn area" />
+
+    <label>Area Color</label>
+    <input id="editRegionColor" type="color" value="#4da6ff" />
+
+    <button id="deleteRegion" class="danger">Delete Area</button>
   </aside>
 
   <div id="helpPanel" class="hidden">
@@ -65,11 +76,11 @@
 
     <p><strong>Upload Map:</strong> Click “Import Map” and choose an image.</p>
     <p><strong>Add Marker:</strong> Double-click anywhere on the map.</p>
-    <p><strong>Edit Marker:</strong> Click a marker, then edit its info in the sidebar.</p>
+    <p><strong>Edit Marker:</strong> Click a marker, then edit its info in the sidebar. Changes apply instantly.</p>
     <p><strong>Move Marker:</strong> Click and Drag a marker to a new spot.</p>
     <p><strong>Categories:</strong> Use + to add a category and − to remove one in the sidebar.</p>
     <p><strong>Custom Icons:</strong> Select a marker, then upload an icon in the sidebar.</p>
-    <p><strong>Regions:</strong> Use the drawing tools on the left to draw areas.</p>
+    <p><strong>Regions:</strong> Use the drawing tools on the left to draw areas. Click a drawn area to edit its label and color in the sidebar. Changes apply instantly.</p>
     <p><strong>Save/Load:</strong> "Save World" exports a JSON file. "Load World" restores it.</p>
 
     <button id="closeHelp">Close</button>
