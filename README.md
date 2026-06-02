@@ -1,4 +1,4 @@
-#How to Use
+# How to Use
 
 Upload Map: Click “Import Map” and choose an image.
 
@@ -16,5 +16,5 @@ Regions: Use the drawing tools on the left to draw areas.
 
 Save/Load: "Save World" exports a JSON file. "Load World" restores it.
 
-#Images
+# Images
 <img width="715" height="585" alt="image" src="https://github.com/user-attachments/assets/1c019bd7-345f-45c9-9dcd-e75a1f8d11fc" />
