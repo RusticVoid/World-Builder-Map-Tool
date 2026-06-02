@@ -54,6 +54,7 @@ button:hover,
   right: 0;
   width: 250px;
   height: 100vh;
+  box-sizing: border-box;
   z-index: 1000;
 
   background: rgba(18, 22, 30, 0.96);
@@ -63,6 +64,10 @@ button:hover,
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 #sidebar h2 {
@@ -195,14 +200,98 @@ button:hover,
   display: none;
 }
 
+.leaflet-tooltip.region-label,
 .region-label {
-  background: rgba(18, 22, 30, 0.82);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.leaflet-tooltip.region-label::before {
+  display: none !important;
+}
+
+.region-label-content {
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 5px;
-  color: white;
-  font-weight: bold;
   padding: 3px 7px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+.region-label-svg {
+  display: block;
+  overflow: visible;
+}
+
+.region-label-svg text {
+  dominant-baseline: middle;
+}
+
+.region-label-svg,
+.region-label-svg * {
+  pointer-events: none;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 1 !important;
+}
+
+#sidebar input[type="checkbox"] {
+  width: auto;
+}
+
+#sidebar input[type="number"] {
+  appearance: textfield;
+}
+
+#sidebar input[type="number"]::-webkit-outer-spin-button,
+#sidebar input[type="number"]::-webkit-inner-spin-button {
+  margin: 0;
+}
+
+#sidebar::-webkit-scrollbar {
+  width: 10px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+  background: #111722;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+  background: #384152;
+  border-radius: 8px;
+}
+
+#sidebar::-webkit-scrollbar-thumb:hover {
+  background: #4a566b;
+}
+
+#sidebar input[type="color"] {
+  width: 100%;
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #384152;
+  cursor: pointer;
+}
+
+#sidebar input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 3px;
+}
+
+#sidebar input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+#sidebar input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 4px;
 }
 
 #resourcesPanel {
@@ -243,4 +332,95 @@ button:hover,
 
 .resource-link:hover {
   background: #3c465a;
+}
+.region-label-overlay {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
+
+.region-label-handle {
+  background: transparent !important;
+  border: none !important;
+}
+
+.region-label-handle span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #4da6ff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+}
+
+.region-label-handle:active span {
+  cursor: grabbing;
+}
+
+.region-label-rotator {
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+.region-label-overlay.leaflet-zoom-animated,
+.region-label-overlay .region-label-rotator,
+.region-label-overlay .region-label-svg {
+  transition: none !important;
+  animation: none !important;
+}
+
+
+
+.color-preview-row {
+  display: grid;
+  grid-template-columns: 1fr 76px;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+}
+
+#sidebar .color-preview-row input[type="color"] {
+  width: 100%;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #59657a;
+  border-radius: 8px;
+  background: #111722;
+  cursor: pointer;
+}
+
+.color-preview-value {
+  min-width: 72px;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border: 1px solid #384152;
+  border-radius: 7px;
+  background: #111722;
+  color: #d9e2f1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+#sidebar .color-preview-row input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 4px;
+}
+
+#sidebar .color-preview-row input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+#sidebar .color-preview-row input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+#editRegionLabelFont {
+  min-height: 36px;
 }

@@ -4,6 +4,7 @@ let imageBounds;
 let selectedPoint = null;
 let selectedMarker = null;
 let selectedRegionLayer = null;
+let regionLabelHandles = [];
 
 const resourcesPanel = document.getElementById("resourcesPanel");
 
@@ -20,7 +21,9 @@ map = L.map("map", {
   crs: L.CRS.Simple,
   minZoom: -3,
   attributionControl: false,
-  doubleClickZoom: false
+  doubleClickZoom: false,
+  zoomAnimation: false,
+  markerZoomAnimation: false
 });
 
 map.addLayer(drawnItems);
@@ -56,7 +59,55 @@ const drawControl = new L.Control.Draw({
 
 map.addControl(drawControl);
 
+map.on("zoomend moveend", () => {
+  drawnItems.eachLayer(layer => updateRegionLabelOverlay(layer));
+});
+
 updateCategoryDropdown();
+
+
+enhanceColorInputs();
+
+function enhanceColorInputs() {
+  document.querySelectorAll('input[type="color"]').forEach(input => {
+    if (input.closest(".color-preview-row")) return;
+
+    const row = document.createElement("div");
+    row.className = "color-preview-row";
+
+    const value = document.createElement("span");
+    value.className = "color-preview-value";
+
+    input.parentNode.insertBefore(row, input);
+    row.appendChild(input);
+    row.appendChild(value);
+
+    const syncPreview = () => {
+      value.textContent = (input.value || "#000000").toUpperCase();
+    };
+
+    input.addEventListener("input", syncPreview);
+    input.addEventListener("change", syncPreview);
+
+    const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    if (valueDescriptor && valueDescriptor.set && !input.dataset.colorPreviewEnhanced) {
+      Object.defineProperty(input, "value", {
+        get() {
+          return valueDescriptor.get.call(this);
+        },
+        set(newValue) {
+          valueDescriptor.set.call(this, newValue);
+          requestAnimationFrame(syncPreview);
+        }
+      });
+      input.dataset.colorPreviewEnhanced = "true";
+    }
+
+    syncPreview();
+  });
+}
+
+
 
 document.getElementById("imageLoader").addEventListener("change", e => {
   const file = e.target.files[0];
@@ -349,6 +400,7 @@ map.on(L.Draw.Event.EDITED, e => {
 
 map.on(L.Draw.Event.DELETED, () => {
   selectedRegionLayer = null;
+  clearRegionLabelHandles();
   clearRegionSidebar();
   saveRegionsFromMap();
 });
@@ -357,7 +409,16 @@ function setupRegionLayer(layer, properties = {}) {
   const data = {
     id: properties.id || crypto.randomUUID(),
     name: properties.name || "New Area",
-    color: properties.color || "#4da6ff"
+    color: properties.color || "#4da6ff",
+    labelVisible: properties.labelVisible !== false,
+    labelTextColor: properties.labelTextColor || "#ffffff",
+    labelBackgroundVisible: properties.labelBackgroundVisible !== false,
+    labelBackground: properties.labelBackground || "#12161e",
+    labelSize: Number(properties.labelSize || 14),
+    labelWeight: properties.labelWeight || "bold",
+    labelCurve: Number(properties.labelCurve || 0),
+    labelStart: properties.labelStart || null,
+    labelEnd: properties.labelEnd || null
   };
 
   layer.regionData = data;
@@ -382,19 +443,212 @@ function applyRegionStyle(layer) {
 }
 
 function updateRegionTooltip(layer) {
+  updateRegionLabelOverlay(layer);
+}
+
+function updateRegionLabelOverlay(layer, shouldRefreshHandles = true) {
   if (!layer.regionData) return;
 
-  const label = escapeHTML(layer.regionData.name || "New Area");
+  // We render area labels as our own draggable/rotatable overlay instead of
+  // Leaflet's tooltip. This removes the default white tooltip box and lets the
+  // label endpoints be controlled independently.
+  if (layer.getTooltip()) layer.unbindTooltip();
 
-  if (layer.getTooltip()) {
-    layer.setTooltipContent(label);
-  } else {
-    layer.bindTooltip(label, {
-      permanent: true,
-      direction: "center",
-      className: "region-label"
-    });
+  if (layer.regionData.labelVisible === false) {
+    removeRegionLabelOverlay(layer);
+    if (shouldRefreshHandles) refreshRegionLabelHandles();
+    return;
   }
+
+  ensureRegionLabelEndpoints(layer);
+
+  const startPoint = map.latLngToLayerPoint(layer.regionData.labelStart);
+  const endPoint = map.latLngToLayerPoint(layer.regionData.labelEnd);
+  const centerPoint = L.point(
+    (startPoint.x + endPoint.x) / 2,
+    (startPoint.y + endPoint.y) / 2
+  );
+
+  const zoomScale = getRegionLabelZoomScale(layer.regionData);
+  const width = Math.max(20, startPoint.distanceTo(endPoint));
+  const height = getRegionLabelHeight(layer.regionData, zoomScale);
+  const angle = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x) * 180 / Math.PI;
+  layer.regionData._labelAngle = angle;
+  const html = makeRegionLabelHTML(layer.regionData, width, zoomScale);
+
+  const icon = L.divIcon({
+    className: "region-label-overlay",
+    html,
+    iconSize: [width, height],
+    iconAnchor: [width / 2, height / 2]
+  });
+
+  if (!layer.regionLabelMarker) {
+    layer.regionLabelMarker = L.marker(map.layerPointToLatLng(centerPoint), {
+      interactive: false,
+      keyboard: false,
+      zoomAnimation: false,
+      zIndexOffset: 200,
+      icon
+    }).addTo(map);
+  } else {
+    layer.regionLabelMarker.setLatLng(map.layerPointToLatLng(centerPoint));
+    layer.regionLabelMarker.setIcon(icon);
+  }
+
+  if (shouldRefreshHandles) refreshRegionLabelHandles();
+}
+
+function removeRegionLabelOverlay(layer) {
+  if (layer.regionLabelMarker) {
+    map.removeLayer(layer.regionLabelMarker);
+    layer.regionLabelMarker = null;
+  }
+}
+
+function ensureRegionLabelEndpoints(layer) {
+  if (!Number.isFinite(Number(layer.regionData.labelBaseZoom))) {
+    layer.regionData.labelBaseZoom = map.getZoom();
+  }
+
+  if (layer.regionData.labelStart && layer.regionData.labelEnd) return;
+
+  const center = layer.getBounds ? layer.getBounds().getCenter() : layer.getLatLng();
+  const centerPoint = map.latLngToLayerPoint(center);
+  const defaultHalfWidth = 70;
+
+  layer.regionData.labelStart = map.layerPointToLatLng([
+    centerPoint.x - defaultHalfWidth,
+    centerPoint.y
+  ]);
+  layer.regionData.labelEnd = map.layerPointToLatLng([
+    centerPoint.x + defaultHalfWidth,
+    centerPoint.y
+  ]);
+}
+
+function getRegionLabelZoomScale(data) {
+  const baseZoom = Number.isFinite(Number(data.labelBaseZoom))
+    ? Number(data.labelBaseZoom)
+    : map.getZoom();
+
+  // Scale the label text/background with the map zoom so it shrinks when
+  // zooming out instead of staying huge over the world map.
+  return Math.max(0.08, Math.min(8, map.getZoomScale(map.getZoom(), baseZoom)));
+}
+
+function getRegionLabelHeight(data, zoomScale = 1) {
+  const fontSize = Number(data.labelSize || 14) * zoomScale;
+  const curve = Math.abs(Number(data.labelCurve || 0)) * zoomScale;
+  return Math.max(10, curve + fontSize + (22 * zoomScale));
+}
+
+function makeRegionLabelHTML(data, widthOverride = null, zoomScale = 1) {
+  const fontSize = Math.max(1, Number(data.labelSize || 14) * zoomScale);
+  const fontFamily = data.labelFont || "Arial, sans-serif";
+  const fontWeight = data.labelWeight || "bold";
+  const textColor = data.labelTextColor || "#ffffff";
+  const hasBackground = data.labelBackgroundVisible !== false;
+  const background = hasBackground ? hexToRGBA(data.labelBackground || "#12161e", 0.82) : "transparent";
+  const curve = Number(data.labelCurve || 0) * zoomScale;
+  const labelText = data.name || "New Area";
+  const width = Math.max(20, widthOverride || Math.ceil(labelText.length * fontSize * 0.72) + (36 * zoomScale));
+  const height = getRegionLabelHeight(data, zoomScale);
+  const midY = height / 2;
+  const controlY = midY - curve;
+  const pathId = `region-label-path-${escapeHTML(data.id || crypto.randomUUID())}`;
+
+  return `
+    <div class="region-label-rotator" style="transform: rotate(${data._labelAngle || 0}deg);">
+      <svg
+        class="region-label-svg"
+        width="${width}"
+        height="${height}"
+        viewBox="0 0 ${width} ${height}"
+        aria-label="${escapeHTML(labelText)}"
+      >
+      <defs>
+        <path
+          id="${pathId}"
+          d="M 0 ${midY} Q ${width / 2} ${controlY} ${width} ${midY}"
+        />
+      </defs>
+      ${hasBackground ? `
+      <use
+        href="#${pathId}"
+        stroke="${escapeHTML(background)}"
+        stroke-width="${fontSize + (12 * zoomScale)}"
+        stroke-linecap="round"
+        fill="none"
+      />` : ""}
+      <text
+        fill="${escapeHTML(textColor)}"
+        font-size="${fontSize}"
+        font-family="${escapeHTML(fontFamily)}"
+        font-weight="${escapeHTML(fontWeight)}"
+        text-anchor="middle"
+      >
+        <textPath href="#${pathId}" startOffset="50%">${escapeHTML(labelText)}</textPath>
+      </text>
+      </svg>
+    </div>
+  `;
+}
+
+function clearRegionLabelHandles() {
+  regionLabelHandles.forEach(handle => map.removeLayer(handle));
+  regionLabelHandles = [];
+}
+
+function refreshRegionLabelHandles() {
+  clearRegionLabelHandles();
+
+  if (!selectedRegionLayer || !selectedRegionLayer.regionData) return;
+  if (selectedRegionLayer.regionData.labelVisible === false) return;
+
+  ensureRegionLabelEndpoints(selectedRegionLayer);
+
+  const makeHandle = (which, latlng) => {
+    const handle = L.marker(latlng, {
+      draggable: true,
+      keyboard: false,
+      zIndexOffset: 1000,
+      icon: L.divIcon({
+        className: "region-label-handle",
+        html: '<span></span>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      })
+    }).addTo(map);
+
+    handle.on("click", e => L.DomEvent.stopPropagation(e));
+    handle.on("drag", () => {
+      selectedRegionLayer.regionData[which] = handle.getLatLng();
+      updateRegionLabelOverlay(selectedRegionLayer, false);
+      saveRegionsFromMap();
+    });
+    handle.on("dragend", () => {
+      updateRegionLabelOverlay(selectedRegionLayer, true);
+      saveRegionsFromMap();
+    });
+    return handle;
+  };
+
+  regionLabelHandles = [
+    makeHandle("labelStart", selectedRegionLayer.regionData.labelStart),
+    makeHandle("labelEnd", selectedRegionLayer.regionData.labelEnd)
+  ];
+}
+
+function hexToRGBA(hex, alpha = 1) {
+  const match = String(hex).trim().match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  if (!match) return `rgba(18, 22, 30, ${alpha})`;
+
+  const r = parseInt(match[1], 16);
+  const g = parseInt(match[2], 16);
+  const b = parseInt(match[3], 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function selectRegion(layer) {
@@ -413,17 +667,34 @@ function selectRegion(layer) {
 
   applyRegionStyle(layer);
   fillRegionSidebar(layer);
+  refreshRegionLabelHandles();
 }
 
 function fillRegionSidebar(layer) {
   document.getElementById("selectedTitle").textContent = layer.regionData.name;
   document.getElementById("editRegionName").value = layer.regionData.name;
   document.getElementById("editRegionColor").value = layer.regionData.color || "#4da6ff";
+  document.getElementById("editRegionLabelVisible").checked = layer.regionData.labelVisible !== false;
+  document.getElementById("editRegionLabelTextColor").value = layer.regionData.labelTextColor || "#ffffff";
+  document.getElementById("editRegionLabelBackgroundVisible").checked = layer.regionData.labelBackgroundVisible !== false;
+  document.getElementById("editRegionLabelBackground").value = layer.regionData.labelBackground || "#12161e";
+  document.getElementById("editRegionLabelSize").value = layer.regionData.labelSize || 14;
+  document.getElementById("editRegionLabelFont").value = layer.regionData.labelFont || "Arial, sans-serif";
+  document.getElementById("editRegionLabelWeight").value = layer.regionData.labelWeight || "bold";
+  document.getElementById("editRegionLabelCurve").value = layer.regionData.labelCurve || 0;
 }
 
 function clearRegionSidebar() {
   document.getElementById("editRegionName").value = "";
   document.getElementById("editRegionColor").value = "#4da6ff";
+  document.getElementById("editRegionLabelVisible").checked = true;
+  document.getElementById("editRegionLabelTextColor").value = "#ffffff";
+  document.getElementById("editRegionLabelBackgroundVisible").checked = true;
+  document.getElementById("editRegionLabelBackground").value = "#12161e";
+  document.getElementById("editRegionLabelSize").value = 14;
+  document.getElementById("editRegionLabelFont").value = "Arial, sans-serif";
+  document.getElementById("editRegionLabelWeight").value = "bold";
+  document.getElementById("editRegionLabelCurve").value = 0;
 }
 
 function saveRegionsFromMap() {
@@ -433,8 +704,12 @@ function saveRegionsFromMap() {
     const feature = layer.toGeoJSON();
     feature.properties = {
       ...(feature.properties || {}),
-      ...(layer.regionData || {})
+      ...(layer.regionData || {}),
+      labelStart: layer.regionData?.labelStart ? { lat: layer.regionData.labelStart.lat, lng: layer.regionData.labelStart.lng } : null,
+      labelEnd: layer.regionData?.labelEnd ? { lat: layer.regionData.labelEnd.lat, lng: layer.regionData.labelEnd.lng } : null
     };
+
+    delete feature.properties._labelAngle;
 
     worldData.regions.push(feature);
   });
@@ -447,6 +722,30 @@ function applyRegionSidebarChanges() {
     document.getElementById("editRegionName").value || "Unnamed Area";
   selectedRegionLayer.regionData.color =
     document.getElementById("editRegionColor").value || "#4da6ff";
+  selectedRegionLayer.regionData.labelVisible =
+    document.getElementById("editRegionLabelVisible").checked;
+  selectedRegionLayer.regionData.labelTextColor =
+    document.getElementById("editRegionLabelTextColor").value || "#ffffff";
+  selectedRegionLayer.regionData.labelBackgroundVisible =
+    document.getElementById("editRegionLabelBackgroundVisible").checked;
+  selectedRegionLayer.regionData.labelBackground =
+    document.getElementById("editRegionLabelBackground").value || "#12161e";
+  selectedRegionLayer.regionData.labelSize = clampNumber(
+    document.getElementById("editRegionLabelSize").value,
+    10,
+    72,
+    14
+  );
+  selectedRegionLayer.regionData.labelFont =
+    document.getElementById("editRegionLabelFont").value || "Arial, sans-serif";
+  selectedRegionLayer.regionData.labelWeight =
+    document.getElementById("editRegionLabelWeight").value || "bold";
+  selectedRegionLayer.regionData.labelCurve = clampNumber(
+    document.getElementById("editRegionLabelCurve").value,
+    -300,
+    300,
+    0
+  );
 
   applyRegionStyle(selectedRegionLayer);
   updateRegionTooltip(selectedRegionLayer);
@@ -455,7 +754,18 @@ function applyRegionSidebarChanges() {
   saveRegionsFromMap();
 }
 
-["editRegionName", "editRegionColor"].forEach(id => {
+[
+  "editRegionName",
+  "editRegionColor",
+  "editRegionLabelVisible",
+  "editRegionLabelTextColor",
+  "editRegionLabelBackgroundVisible",
+  "editRegionLabelBackground",
+  "editRegionLabelSize",
+  "editRegionLabelFont",
+  "editRegionLabelWeight",
+  "editRegionLabelCurve"
+].forEach(id => {
   const input = document.getElementById(id);
   input.addEventListener("input", applyRegionSidebarChanges);
   input.addEventListener("change", applyRegionSidebarChanges);
@@ -464,6 +774,8 @@ function applyRegionSidebarChanges() {
 document.getElementById("deleteRegion").addEventListener("click", () => {
   if (!selectedRegionLayer) return alert("Click a drawn area first.");
 
+  removeRegionLabelOverlay(selectedRegionLayer);
+  clearRegionLabelHandles();
   drawnItems.removeLayer(selectedRegionLayer);
   selectedRegionLayer = null;
   clearRegionSidebar();
@@ -518,6 +830,7 @@ document.getElementById("loadWorld").addEventListener("change", e => {
 
 function loadWorld(data) {
   clearMarkers();
+  removeAllRegionLabelOverlays();
   drawnItems.clearLayers();
 
   worldData = {
@@ -549,6 +862,12 @@ function loadWorld(data) {
   });
 }
 
+
+function removeAllRegionLabelOverlays() {
+  drawnItems.eachLayer(layer => removeRegionLabelOverlay(layer));
+  clearRegionLabelHandles();
+}
+
 function clearMarkers() {
   if (!worldData.points) return;
 
@@ -557,6 +876,12 @@ function clearMarkers() {
       map.removeLayer(point.marker);
     }
   });
+}
+
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
 }
 
 function escapeHTML(str) {
@@ -584,6 +909,7 @@ function highlightSelectedMarker(marker) {
     const oldRegion = selectedRegionLayer;
     selectedRegionLayer = null;
     applyRegionStyle(oldRegion);
+    clearRegionLabelHandles();
     clearRegionSidebar();
   }
 
@@ -620,6 +946,7 @@ function clearSelection() {
     const oldRegion = selectedRegionLayer;
     selectedRegionLayer = null;
     applyRegionStyle(oldRegion);
+    clearRegionLabelHandles();
     clearRegionSidebar();
   }
 

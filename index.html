@@ -70,6 +70,47 @@
     <label>Area Color</label>
     <input id="editRegionColor" type="color" value="#4da6ff" />
 
+    <label>Show Area Label</label>
+    <label class="check-row">
+      <input id="editRegionLabelVisible" type="checkbox" checked />
+      Visible on map
+    </label>
+
+    <label>Label Text Color</label>
+    <input id="editRegionLabelTextColor" type="color" value="#ffffff" />
+
+    <label>Label Background</label>
+    <label class="check-row">
+      <input id="editRegionLabelBackgroundVisible" type="checkbox" checked />
+      Show background behind label
+    </label>
+    <input id="editRegionLabelBackground" type="color" value="#12161e" />
+
+    <label>Label Size</label>
+    <input id="editRegionLabelSize" type="number" min="10" max="72" step="1" value="14" />
+
+    <label>Label Font</label>
+    <select id="editRegionLabelFont">
+      <option value="Arial, sans-serif" selected>Arial</option>
+      <option value="Georgia, serif">Georgia</option>
+      <option value="'Times New Roman', Times, serif">Times New Roman</option>
+      <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+      <option value="Verdana, sans-serif">Verdana</option>
+      <option value="'Courier New', monospace">Courier New</option>
+      <option value="'Brush Script MT', cursive">Brush Script</option>
+      <option value="'Cinzel', Georgia, serif">Cinzel / Fantasy Serif</option>
+      <option value="'Papyrus', fantasy">Papyrus</option>
+    </select>
+
+    <label>Label Style</label>
+    <select id="editRegionLabelWeight">
+      <option value="normal">Normal</option>
+      <option value="bold" selected>Bold</option>
+    </select>
+
+    <label>Label Curve</label>
+    <input id="editRegionLabelCurve" type="number" min="-300" max="300" step="1" value="0" />
+
     <button id="deleteRegion" class="danger">Delete Area</button>
   </aside>
 
@@ -90,7 +131,7 @@
 
     <p><strong>Draw Regions:</strong> Use the drawing tools on the left side of the map to create territories, kingdoms, provinces, biomes, or other areas.</p>
 
-    <p><strong>Edit Regions:</strong> Click a region to edit its name and color in the sidebar.</p>
+    <p><strong>Edit Regions:</strong> Click a region to edit its name, area color, label visibility, label text color, optional label background, label size, label style, and label curve in the sidebar.</p>
 
     <p><strong>Save World:</strong> Exports all markers, regions, labels, colors, categories, and settings into a JSON file.</p>
 
