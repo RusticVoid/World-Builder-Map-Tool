@@ -28,6 +28,23 @@ map = L.map("map", {
 
 map.addLayer(drawnItems);
 
+// Leaflet.draw removes drawn shapes from this FeatureGroup when you use
+// the left-side delete tool. Area labels are separate map markers, so they
+// must be cleaned up whenever their owning drawn layer leaves drawnItems.
+drawnItems.on("layerremove", e => {
+  const layer = e.layer;
+  if (!layer || !layer.regionData) return;
+
+  removeRegionLabelOverlay(layer);
+
+  if (selectedRegionLayer === layer) {
+    selectedRegionLayer = null;
+    clearRegionLabelHandles();
+    clearRegionSidebar();
+    showSidebarEditor(null);
+  }
+});
+
 const drawControl = new L.Control.Draw({
   position: "topleft",
   draw: {
@@ -524,8 +541,16 @@ function updateRegionLabelOverlay(layer, shouldRefreshHandles = true) {
 }
 
 function removeRegionLabelOverlay(layer) {
+  if (!layer) return;
+
+  if (layer.getTooltip && layer.getTooltip()) {
+    layer.unbindTooltip();
+  }
+
   if (layer.regionLabelMarker) {
-    map.removeLayer(layer.regionLabelMarker);
+    if (map.hasLayer(layer.regionLabelMarker)) {
+      map.removeLayer(layer.regionLabelMarker);
+    }
     layer.regionLabelMarker = null;
   }
 }
