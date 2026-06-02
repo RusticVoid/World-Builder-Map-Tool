@@ -17,4 +17,4 @@ Regions: Use the drawing tools on the left to draw areas.
 Save/Load: "Save World" exports a JSON file. "Load World" restores it.
 
 # Images
-<img width="715" height="585" alt="image" src="https://github.com/user-attachments/assets/1c019bd7-345f-45c9-9dcd-e75a1f8d11fc" />
+<img width="615" height="427" alt="image" src="https://github.com/user-attachments/assets/6c0ad18e-0591-4005-a210-0dae15641dcf" />
