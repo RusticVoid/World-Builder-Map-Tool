@@ -1,4 +1,3 @@
-
 let map;
 let imageLayer;
 let imageBounds;
@@ -84,6 +83,8 @@ function loadMapImage(src) {
     if (imageLayer) map.removeLayer(imageLayer);
 
     imageLayer = L.imageOverlay(src, imageBounds).addTo(map);
+    imageLayer.bringToBack();
+    drawnItems.bringToFront();
     map.fitBounds(imageBounds);
   };
 
@@ -334,6 +335,7 @@ map.on(L.Draw.Event.CREATED, e => {
   });
 
   drawnItems.addLayer(layer);
+  layer.bringToFront();
   selectRegion(layer);
   saveRegionsFromMap();
 });
@@ -540,6 +542,7 @@ function loadWorld(data) {
     layerGroup.eachLayer(layer => {
       setupRegionLayer(layer, region.properties || {});
       drawnItems.addLayer(layer);
+      layer.bringToFront();
     });
   });
 }
